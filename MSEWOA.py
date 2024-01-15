@@ -9,46 +9,48 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class MSEWOA():
+    '''初始化,形参，默认值属性'''
     def __init__(self, fitness, D=30, P=20, G=500, ub=1, lb=0, 
-                 a_max=2, a_min=0, a2_max=-1, a2_min=-2, l_max=1, l_min=-1, b_max=500, b_min=0):
-        self.fitness = fitness
-        self.D = D
-        self.P = P
-        self.G = G
-        self.ub = ub*np.ones([self.P, self.D])
-        self.lb = lb*np.ones([self.P, self.D])
-        self.a_max = a_max
+                 a_max=2, a_min=0, a2_max=-1, a2_min=-2, l_max=1, l_min=-1, b_max=500, b_min=0): 
+        self.fitness = fitness 
+        self.D = D    #维数
+        self.P = P    #种群数量
+        self.G = G    #最大迭代次数
+        self.ub = ub*np.ones([self.P, self.D])    #上界
+        self.lb = lb*np.ones([self.P, self.D])    #下界（np数组进行维数匹配）
+        self.a_max = a_max    #收敛因子，从2线性递减到0
         self.a_min = a_min
         self.a2_max = a2_max
         self.a2_min = a2_min
-        self.l_max = l_max
+        self.l_max = l_max    #螺旋位置更新
         self.l_min = l_min
         self.b_max = b_max
         self.b_min = b_min
-        
-        self.gbest_X = np.zeros([self.D])
-        self.gbest_F = np.inf
-        self.loss_curve = np.zeros(self.G)
+
+        '''不能通过位置、关键字进行参数传递，句号属性方法（初始化）'''
+        self.gbest_X = np.zeros([self.D])    #初始化全局最优位置，全0
+        self.gbest_F = np.inf    #初始化全局最优解的适应度值为inf无穷大
+        self.loss_curve = np.zeros(self.G)    #维数最大迭代次数
         
         
     def opt(self):
-        # 初始化
+        # 内部初始化，uniform用于生成指定范围内均匀分布的随机数。self.整个类的实例中使用，因为它们是对象的特征。其他方法内部定义的参数（无self)通常是用于执行具体操作的局部变量
         self.X = np.random.uniform(low=self.lb, high=self.ub, size=[self.P, self.D])
         
         # 迭代
         for g in range(self.G):
             # OBL
-            self.X, F = self.OBL()
+            self.X, F = self.OBL()    #OBJ方法的返回值
             # F = self.fitness(self.X)
             
-            # 更新最佳解
+            # 更新最佳解，F是整个种群的适应度
             if np.min(F) < self.gbest_F:
-                idx = F.argmin()
-                self.gbest_X = self.X[idx].copy()
+                idx = F.argmin()    #用于找到数组中最小值所在的位置，并返回该位置的索引。
+                self.gbest_X = self.X[idx].copy()    #浅拷贝，这意味着在拷贝中做的修改不会影响原始数组，但如果修改原始数组的数据，拷贝也会受到影响。
                 self.gbest_F = F.min()
             
             # 收斂曲線
-            self.loss_curve[g] = self.gbest_F
+            self.loss_curve[g] = self.gbest_F    #损失函数的横纵坐标，迭代次数，最佳适应度
             old_X = self.X.copy()
             old_F = F.copy()
             
